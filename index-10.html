@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAST CASH - Earning App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0f17;
+            --card-bg: #161a29;
+            --accent-color: #00d26a;
+            --accent-hover: #00b359;
+            --text-main: #ffffff;
+            --text-sub: #8a94a6;
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --bkash-color: #e2136e;
+            --nagad-color: #f7921e;
+            --rocket-color: #8c3494;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; background: var(--bg-color); min-height: 100vh; display: flex; flex-direction: column; position: relative; padding-bottom: 75px; }
+        .top-bar { background: var(--card-bg); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.05); position: sticky; top: 0; z-index: 100; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#00d26a,#0080ff); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #fff; box-shadow: 0 4px 10px rgba(0,210,106,.3); }
+        .user-details h3 { font-size: 15px; font-weight: 600; }
+        .user-details p { font-size: 12px; color: var(--text-sub); }
+        .balance-badge { background: rgba(0,210,106,.12); border: 1px solid rgba(0,210,106,.3); padding: 8px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; color: var(--accent-color); font-weight: bold; font-size: 15px; }
+        .view { display: none; padding: 20px; animation: fadeIn .3s ease-in-out; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .hero-card { background: linear-gradient(135deg,#1f263e,#111523); border-radius: 16px; padding: 22px; text-align: center; border: 1px solid rgba(255,255,255,.08); margin-bottom: 20px; position: relative; overflow: hidden; }
+        .hero-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle,rgba(0,210,106,.1) 0%,rgba(0,0,0,0) 70%); pointer-events: none; }
+        .hero-card h2 { font-size: 14px; color: var(--text-sub); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .hero-card .amount { font-size: 36px; font-weight: 800; color: var(--accent-color); margin-bottom: 15px; }
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn { background: var(--accent-color); color: #000; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; }
+        .btn:active { transform: scale(.97); }
+        .btn-secondary { background: rgba(255,255,255,.08); color: var(--text-main); }
+        .section-title { font-size: 16px; font-weight: 700; margin: 20px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.05); }
+        .stat-card i { font-size: 20px; color: var(--accent-color); margin-bottom: 8px; }
+        .stat-card h4 { font-size: 12px; color: var(--text-sub); }
+        .stat-card p { font-size: 18px; font-weight: 700; margin-top: 4px; }
+        .task-card { background: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,.05); }
+        .task-left { display: flex; align-items: center; gap: 14px; }
+        .task-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(0,210,106,.1); color: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .task-info h4 { font-size: 14px; margin-bottom: 4px; }
+        .task-info p { font-size: 12px; color: var(--accent-color); font-weight: 600; }
+        .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 8px; }
+        .method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+        .method-card { background: var(--card-bg); border: 2px solid transparent; border-radius: 12px; padding: 14px 8px; text-align: center; cursor: pointer; transition: all .2s; }
+        .method-card.selected { border-color: var(--accent-color); background: rgba(0,210,106,.05); }
+        .method-card img { width: 36px; height: 36px; object-fit: contain; margin-bottom: 6px; }
+        .method-card p { font-size: 12px; font-weight: 600; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
+        .input-field { width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,.1); padding: 14px; border-radius: 12px; color: #fff; font-size: 15px; outline: none; }
+        .input-field:focus { border-color: var(--accent-color); }
+        .history-item { background: var(--card-bg); padding: 14px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .history-status { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: bold; }
+        .status-pending { background: rgba(255,165,0,.2); color: var(--warning); }
+        .status-success { background: rgba(0,210,106,.2); color: var(--accent-color); }
+        .ref-box { background: var(--card-bg); border-radius: 16px; padding: 20px; text-align: center; border: 1px dashed rgba(0,210,106,.4); margin-bottom: 20px; }
+        .ref-code { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--accent-color); margin: 10px 0; }
+        .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.05); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sub); font-size: 11px; cursor: pointer; text-decoration: none; width: 20%; }
+        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: var(--accent-color); }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--accent-color); color: #000; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-size: 13px; box-shadow: 0 5px 20px rgba(0,0,0,.5); transition: transform .3s ease; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast">মেসেজ নোটিফিকেশন</div>
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="user-info">
+                <div class="avatar" id="uAvatar">U</div>
+                <div class="user-details"><h3 id="uName">ইউজার</h3><p id="uId">ID: 1029384</p></div>
+            </div>
+            <div class="balance-badge"><i class="fa-solid fa-coins"></i><span id="topBalance">0.00</span> ৳</div>
+        </div>
+
+        <div id="view-home" class="view active">
+            <div class="hero-card">
+                <h2>মোট ব্যালেন্স</h2>
+                <div class="amount"><span id="mainBalance">0.00</span> ৳</div>
+                <div class="quick-actions">
+                    <button class="btn" onclick="switchView('tasks')"><i class="fa-solid fa-play"></i> কাজ করুন</button>
+                    <button class="btn btn-secondary" onclick="switchView('withdraw')"><i class="fa-solid fa-wallet"></i> উইথড্র</button>
+                </div>
+            </div>
+            <div class="section-title"><span>আপনার স্ট্যাটিস্টিকস</span></div>
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fa-solid fa-check-circle"></i><h4>সম্পন্ন কাজ</h4><p id="statCompleted">0</p></div>
+                <div class="stat-card"><i class="fa-solid fa-users"></i><h4>মোট রেফার</h4><p id="statRefers">0</p></div>
+            </div>
+        </div>
+
+        <div id="view-tasks" class="view"><div class="section-title">দৈনিক টাস্ক সমূহ</div><div id="taskList"></div></div>
+
+        <div id="view-refer" class="view">
+            <div class="ref-box">
+                <i class="fa-solid fa-gift" style="font-size:40px;color:var(--accent-color);margin-bottom:10px;"></i>
+                <h3>বন্ধুদের ইনভাইট করুন</h3>
+                <p style="font-size:12px;color:var(--text-sub);margin-top:6px;">প্রতি সফল রেফারে পাবেন ৫০ টাকা বোনাস!</p>
+                <div class="ref-code" id="refCodeDisplay">FAST1234</div>
+                <button class="btn" style="width:100%;" onclick="copyReferLink()"><i class="fa-solid fa-copy"></i> লিংক কপি করুন</button>
+            </div>
+        </div>
+
+        <div id="view-withdraw" class="view">
+            <div class="section-title">পেমেন্ট মেথড সিলেক্ট করুন</div>
+            <div class="method-grid">
+                <div class="method-card selected" onclick="selectMethod('bKash', this)"><i class="fa-solid fa-mobile-screen-button" style="font-size:24px;color:var(--bkash-color);"></i><p>bKash</p></div>
+                <div class="method-card" onclick="selectMethod('Nagad', this)"><i class="fa-solid fa-mobile-screen-button" style="font-size:24px;color:var(--nagad-color);"></i><p>Nagad</p></div>
+                <div class="method-card" onclick="selectMethod('Rocket', this)"><i class="fa-solid fa-mobile-screen-button" style="font-size:24px;color:var(--rocket-color);"></i><p>Rocket</p></div>
+            </div>
+            <div class="input-group"><label>একউন্ট নম্বর (Personal)</label><input type="number" id="withdrawNum" class="input-field" placeholder="017XXXXXXXX"></div>
+            <div class="input-group"><label>টাকার পরিমাণ (সর্বনিম্ন ১০০ ৳)</label><input type="number" id="withdrawAmt" class="input-field" placeholder="100"></div>
+            <button class="btn" style="width:100%;margin-top:10px;" onclick="processWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
+            <div class="section-title" style="margin-top:30px;">সাম্প্রতিক উইথড্র হিস্ট্রি</div>
+            <div id="withdrawHistory"></div>
+        </div>
+
+        <div class="nav-bar">
+            <a class="nav-item active" onclick="switchView('home', this)"><i class="fa-solid fa-house"></i><span>হোম</span></a>
+            <a class="nav-item" onclick="switchView('tasks', this)"><i class="fa-solid fa-list-check"></i><span>টাস্ক</span></a>
+            <a class="nav-item" onclick="switchView('refer', this)"><i class="fa-solid fa-user-plus"></i><span>রেফার</span></a>
+            <a class="nav-item" onclick="switchView('withdraw', this)"><i class="fa-solid fa-money-bill-transfer"></i><span>উইথড্র</span></a>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
+        let selectedMethod = 'bKash';
+
+        let userData = JSON.parse(localStorage.getItem('fast_cash_user')) || {
+            name: tg?.initDataUnsafe?.user?.first_name || 'User',
+            id: tg?.initDataUnsafe?.user?.id || Math.floor(100000 + Math.random() * 900000),
+            balance: 50.00, completedTasks: 0, refers: 0, history: []
+        };
+
+        const tasks = [
+            { id: 1, title: 'Telegram চ্যানেলে জয়েন করুন', reward: 15, icon: 'fa-telegram', done: false },
+            { id: 2, title: 'স্পনসর ভিডিও দেখুন', reward: 10, icon: 'fa-play', done: false },
+            { id: 3, title: 'দৈনিক বোনাস সংগ্রহ করুন', reward: 5, icon: 'fa-calendar-check', done: false },
+            { id: 4, title: 'ওয়েবসাইট ভিজিট করুন (15 sec)', reward: 20, icon: 'fa-globe', done: false }
+        ];
+
+        function init() {
+            document.getElementById('uName').innerText = userData.name;
+            document.getElementById('uAvatar').innerText = userData.name.charAt(0);
+            document.getElementById('uId').innerText = 'ID: ' + userData.id;
+            document.getElementById('refCodeDisplay').innerText = 'FAST' + userData.id;
+            updateUI(); renderTasks(); renderHistory();
+        }
+        function updateUI() {
+            document.getElementById('topBalance').innerText = userData.balance.toFixed(2);
+            document.getElementById('mainBalance').innerText = userData.balance.toFixed(2);
+            document.getElementById('statCompleted').innerText = userData.completedTasks;
+            document.getElementById('statRefers').innerText = userData.refers;
+            localStorage.setItem('fast_cash_user', JSON.stringify(userData));
+        }
+        function switchView(viewName, element) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+            if (element) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                element.classList.add('active');
+            } else {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.getAttribute('onclick')?.includes("'" + viewName + "'")));
+            }
+        }
+        function renderTasks() {
+            const list = document.getElementById('taskList'); list.innerHTML = '';
+            tasks.forEach(task => {
+                let div = document.createElement('div'); div.className = 'task-card';
+                div.innerHTML = `<div class="task-left"><div class="task-icon"><i class="fa-solid ${task.icon}"></i></div><div class="task-info"><h4>${task.title}</h4><p>+${task.reward} ৳</p></div></div><button class="btn btn-sm ${task.done ? 'btn-secondary' : ''}" onclick="completeTask(${task.id})" ${task.done ? 'disabled' : ''}>${task.done ? 'সম্পন্ন' : 'ক্লেম'}</button>`;
+                list.appendChild(div);
+            });
+        }
+        function completeTask(id) {
+            let task = tasks.find(t => t.id === id);
+            if (task && !task.done) {
+                task.done = true; userData.balance += task.reward; userData.completedTasks += 1;
+                updateUI(); renderTasks(); showToast(`অভিনন্দন! ${task.reward} টাকা যোগ হয়েছে।`);
+            }
+        }
+        function selectMethod(method, element) {
+            selectedMethod = method;
+            document.querySelectorAll('.method-card').forEach(m => m.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+        function processWithdraw() {
+            let num = document.getElementById('withdrawNum').value;
+            let amt = parseFloat(document.getElementById('withdrawAmt').value);
+            if (!num || num.length < 11) { showToast('সঠিক মোবাইল নম্বর দিন!'); return; }
+            if (!amt || amt < 100) { showToast('সর্বনিম্ন ১০০ টাকা তুলুন!'); return; }
+            if (amt > userData.balance) { showToast('পর্যাপ্ত ব্যালেন্স নেই!'); return; }
+            userData.balance -= amt;
+            userData.history.unshift({ method: selectedMethod, num: num, amt: amt, status: 'Pending', date: new Date().toLocaleDateString() });
+            updateUI(); renderHistory();
+            document.getElementById('withdrawNum').value = '';
+            document.getElementById('withdrawAmt').value = '';
+            showToast('উইথড্র রিকোয়েস্ট সফল হয়েছে!');
+        }
+        function renderHistory() {
+            const hList = document.getElementById('withdrawHistory'); hList.innerHTML = '';
+            if (userData.history.length === 0) {
+                hList.innerHTML = '<p style="color:var(--text-sub);font-size:12px;text-align:center;">কোনো উইথড্র হিস্ট্রি নেই</p>'; return;
+            }
+            userData.history.forEach(item => {
+                let div = document.createElement('div'); div.className = 'history-item';
+                div.innerHTML = `<div><h4 style="font-size:13px;">${item.method} (${item.num})</h4><p style="font-size:11px;color:var(--text-sub);">${item.date}</p></div><div style="text-align:right;"><span style="font-weight:bold;font-size:14px;display:block;">${item.amt} ৳</span><span class="history-status status-pending">${item.status}</span></div>`;
+                hList.appendChild(div);
+            });
+        }
+        async function copyReferLink() {
+            let link = `https://t.me/FastCashAppBot?start=FAST${userData.id}`;
+            try {
+                await navigator.clipboard.writeText(link);
+                showToast('রেফার লিংক কপি হয়েছে!');
+            } catch (e) {
+                showToast('লিংক কপি হয়নি। ব্রাউজারের অনুমতি দিন।');
+            }
+        }
+        function showToast(msg) {
+            let toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
